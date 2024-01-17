@@ -1,0 +1,6 @@
+@FitNotionApi_HostAddress = http://localhost:5138
+
+GET {{FitNotionApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
