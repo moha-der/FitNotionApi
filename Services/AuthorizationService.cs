@@ -25,6 +25,7 @@ namespace FitNotionApi.Services
 
             var claims = new ClaimsIdentity();
             claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, idUser));
+            claims.AddClaim(new Claim(ClaimTypes.Role, "Moha"));
 
             var credentialsToken = new SigningCredentials(
                 new SymmetricSecurityKey(keyBytes),
@@ -58,7 +59,7 @@ namespace FitNotionApi.Services
 
             string tokenCreated = GenerarToken(user_find.Id_Usuario.ToString());
 
-            return new AuthorizationResponse() { Token = tokenCreated, Msg = "OK", Result = true };
+            return new AuthorizationResponse() { Token = tokenCreated, Permiso = user_find.Tipo_Usuario, Msg = "OK", Result = true, email = user_find.Email };
         }
     }
 }

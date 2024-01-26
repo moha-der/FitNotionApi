@@ -28,18 +28,6 @@ namespace FitNotionApi.Controllers
             _authorizationService = authorizationService;
         }
 
-        [HttpPost]
-        [Route("Login")]
-        public async Task<IActionResult> Login([FromBody] AuthorizationRequest authorization)
-        {
-            var authorization_result = await _authorizationService.DevolverToken(authorization);
-            if (authorization_result == null)
-            {
-                return Unauthorized();
-            }
-
-            return Ok(authorization_result);
-        }
 
         // GET: api/Usuarios
         [Authorize]
