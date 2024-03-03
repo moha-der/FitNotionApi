@@ -11,5 +11,11 @@ namespace FitNotionApi.Context
         }
 
         public DbSet<Usuarios> Usuarios { get; set; }
+
+        public DbSet<Alimentos> Alimentos { get; set; }
+
+        public DbSet<ConsumoDiario> ConsumoDiario { get; set; }
+
+        public DbSet<ConsumoDetalle> ConsumoDetalle { get; set; }
     }
 }

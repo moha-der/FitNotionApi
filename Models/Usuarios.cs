@@ -11,6 +11,7 @@ namespace FitNotionApi.Models
         public required string Email { get; set; }
         public required string Password { get; set; }
         public int Edad { get; set; }
+        public DateTime Fecha_nac {  get; set; }
         public int Tipo_Usuario { get; set; }
     }
 }
