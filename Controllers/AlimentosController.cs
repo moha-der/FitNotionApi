@@ -1,7 +1,12 @@
 ﻿using FitNotionApi.Context;
 using FitNotionApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using System.Globalization;
 
 namespace FitNotionApi.Controllers
 {
@@ -18,6 +23,67 @@ namespace FitNotionApi.Controllers
             _context = context;
             _authorizationService = authorizationService;
         }
+
+
+        [HttpGet]
+        [Route("getAlimentosDia")]
+        public ActionResult<IEnumerable<GetComidas>> getAlimentosDia([FromQuery] string email, [FromQuery] string fecha)
+        {
+            DateTime fechaDateTime = DateTime.ParseExact(fecha, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+
+            var userEmailClaim = User.Claims.FirstOrDefault(c => c.Value == "email");
+
+
+            var user_find = _context.Usuarios.FirstOrDefault(
+                x => x.Email == email);
+
+            if (user_find == null)
+            {
+                return BadRequest("Usuario No existe");
+            }
+
+            var comidas = (from cs in _context.ConsumoDiario
+                             join cd in _context.ConsumoDetalle on cs.Id equals cd.Id_consumo_diario
+                             join al in _context.Alimentos on cd.Id_alimento equals al.Id
+                             join us in _context.Usuarios on cs.Id_Usuario equals us.Id_Usuario
+                             where us.Email == email
+                             && cs.Fecha.Date == fechaDateTime.Date 
+                             group new { al, cd } by cd.Tipo_comida into g
+                             select new GetComidas
+                             {
+                                 TipoComida = g.Key,
+                                 CaloriasTotal = g.Sum(x => x.al.Calorias * x.cd.Cantidad),
+                                 Alimentos = g.Select(x => new AlimentoResponse
+                                 {
+                                     Id = x.al.Id.ToString(),
+                                     Nombre = x.al.Nombre,
+                                     Calorias = x.al.Calorias.ToString(),
+                                     Cantidad = x.cd.Cantidad
+                                 }).ToList()
+                             }).ToList();
+
+
+            var caloriasTotalConsumidas = (from cd in _context.ConsumoDetalle
+                                           join al in _context.Alimentos on cd.Id_alimento equals al.Id
+                                           join cs in _context.ConsumoDiario on cd.Id_consumo_diario equals cs.Id
+                                           where cs.Id_Usuario == user_find.Id_Usuario && cs.Fecha.Date == fechaDateTime.Date
+                                           select Math.Round((decimal)(cd.Cantidad * al.Calorias), 2)).Sum();
+
+
+
+
+
+
+            var resultado = new
+            {
+                caloriasObjetivo = 1000,
+                caloriasConsumidas = caloriasTotalConsumidas,
+                detalleComidas = comidas
+            };
+
+            return Ok(resultado);
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> RegistrarAlimento([FromBody] RegistroComida registro)
@@ -37,7 +103,8 @@ namespace FitNotionApi.Controllers
             }
 
             var consumo_find = _context.ConsumoDiario.FirstOrDefault(
-                x => x.Id_Usuario == user_find.Id_Usuario);
+                x => x.Id_Usuario == user_find.Id_Usuario && 
+                x.Fecha.Date == fecha.Date);
 
             if (consumo_find == null)
             {

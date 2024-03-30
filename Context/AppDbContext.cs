@@ -17,5 +17,6 @@ namespace FitNotionApi.Context
         public DbSet<ConsumoDiario> ConsumoDiario { get; set; }
 
         public DbSet<ConsumoDetalle> ConsumoDetalle { get; set; }
+
     }
 }

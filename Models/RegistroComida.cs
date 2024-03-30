@@ -7,5 +7,8 @@
         public string TipoComida { get; set; }
         public DateTime Fecha { get; set; }
         public double Cantidad { get; set; }
+        public double CaloriasTotal { get; set; }
+        public double CaloriasObjetivo { get; set; }
+
     }
 }
