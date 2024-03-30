@@ -7,6 +7,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using System.Globalization;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace FitNotionApi.Controllers
 {
@@ -63,13 +64,24 @@ namespace FitNotionApi.Controllers
                              }).ToList();
 
 
-            var caloriasTotalConsumidas = (from cd in _context.ConsumoDetalle
+            var queryTotal = (from cd in _context.ConsumoDetalle
                                            join al in _context.Alimentos on cd.Id_alimento equals al.Id
                                            join cs in _context.ConsumoDiario on cd.Id_consumo_diario equals cs.Id
                                            where cs.Id_Usuario == user_find.Id_Usuario && cs.Fecha.Date == fechaDateTime.Date
-                                           select Math.Round((decimal)(cd.Cantidad * al.Calorias), 2)).Sum();
+                                           select new
+                                           {
+                                               Calorias = cd.Cantidad * al.Calorias,
+                                               Proteinas = cd.Cantidad * al.Proteinas,
+                                               Carbohidratos = cd.Cantidad * al.Carbohidratos,
+                                               Grasas = cd.Cantidad * al.Grasas,
+                                               Fibra = cd.Cantidad * al.Fibra
+                                           });
 
-
+            decimal caloriasTotalConsumidas = (decimal) queryTotal.Sum(x => x.Calorias);
+            decimal proteinasTotalConsumidas = (decimal) queryTotal.Sum(x => x.Proteinas);
+            decimal hidratosTotalConsumidos = (decimal) queryTotal.Sum(x => x.Carbohidratos);
+            decimal grasasTotalConsumidas = (decimal)queryTotal.Sum(x => x.Grasas);
+            decimal fibrasTotalConsumidas = (decimal)queryTotal.Sum(x => x.Fibra);
 
 
 
@@ -78,6 +90,10 @@ namespace FitNotionApi.Controllers
             {
                 caloriasObjetivo = 1000,
                 caloriasConsumidas = caloriasTotalConsumidas,
+                proteinasConsumidas = proteinasTotalConsumidas,
+                hidratosConsumidos = hidratosTotalConsumidos,
+                grasasConsumidas = grasasTotalConsumidas,
+                fibrasConsumidas = fibrasTotalConsumidas,
                 detalleComidas = comidas
             };
 
