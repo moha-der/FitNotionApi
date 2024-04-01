@@ -13,5 +13,15 @@ namespace FitNotionApi.Models
         public int Edad { get; set; }
         public DateTime Fecha_nac {  get; set; }
         public int Tipo_Usuario { get; set; }
+
+        public void hashedPassword(string password)
+        {
+            this.Password = BCrypt.Net.BCrypt.HashPassword(password,10);
+        }
+
+        public bool verifyPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.Verify(password,this.Password);
+        }
     }
 }

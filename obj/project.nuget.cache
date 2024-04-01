@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "k/JzhSBdAuUy+UZmq2d2dGlQvcR6LpS07WZEHgo91i8lPQWOrLL9In/F1Cfh5SRG7gsFh3WqTmnNKacSznBqBw==",
+  "dgSpecHash": "8fBG1hc3zAKA39QcqASg70AksPr+2iT3NLIyBLcKcg/mNQKpXItT5giXD+zffQ8qhYBclCgJKs49Nt/PQIMMVg==",
   "success": true,
   "projectFilePath": "C:\\Users\\micro\\Desktop\\Personal\\TFG\\FitNotionApi\\FitNotionApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\micro\\.nuget\\packages\\azure.core\\1.25.0\\azure.core.1.25.0.nupkg.sha512",
     "C:\\Users\\micro\\.nuget\\packages\\azure.identity\\1.7.0\\azure.identity.1.7.0.nupkg.sha512",
+    "C:\\Users\\micro\\.nuget\\packages\\bcrypt.net-core\\1.6.0\\bcrypt.net-core.1.6.0.nupkg.sha512",
     "C:\\Users\\micro\\.nuget\\packages\\humanizer\\2.14.1\\humanizer.2.14.1.nupkg.sha512",
     "C:\\Users\\micro\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\micro\\.nuget\\packages\\humanizer.core.af\\2.14.1\\humanizer.core.af.2.14.1.nupkg.sha512",

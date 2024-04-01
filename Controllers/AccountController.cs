@@ -24,8 +24,10 @@ namespace FitNotionApi.Controllers
         [Route("Login")]
         public async Task<IActionResult> Login([FromBody] AuthorizationRequest authorization)
         {
-
+            Console.WriteLine("prueba 123: " + authorization.ToString());
             var authorization_result = await _authorizationService.DevolverToken(authorization);
+
+            Console.WriteLine("solicitando login");
             
             if (authorization_result == null)
             {
@@ -41,8 +43,10 @@ namespace FitNotionApi.Controllers
         {
             var user_find = _context.Usuarios.FirstOrDefault(x =>
             x.Email == nuevoUsuario.Email);
+            string password = nuevoUsuario.Password;
 
             nuevoUsuario.Id_Usuario = Guid.NewGuid().ToString();
+            nuevoUsuario.hashedPassword(password);
 
 
             if (user_find != null)
@@ -55,7 +59,7 @@ namespace FitNotionApi.Controllers
 
             AuthorizationRequest authorization = new AuthorizationRequest();
             authorization.Email = nuevoUsuario.Email;
-            authorization.Password = nuevoUsuario.Password;
+            authorization.Password = password;
 
             var authorization_result = await _authorizationService.DevolverToken(authorization);
 

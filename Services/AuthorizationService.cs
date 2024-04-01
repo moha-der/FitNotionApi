@@ -49,10 +49,12 @@ namespace FitNotionApi.Services
         public async Task<AuthorizationResponse> DevolverToken(AuthorizationRequest authorization)
         {
             var user_find = _context.Usuarios.FirstOrDefault(x =>
-            x.Email == authorization.Email &&
-            x.Password == authorization.Password);
+            x.Email == authorization.Email);
 
-            if (user_find == null)
+
+
+
+            if (!user_find.verifyPassword(authorization.Password))
             {
                 return await Task.FromResult<AuthorizationResponse>(null);
             }
