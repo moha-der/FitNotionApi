@@ -24,10 +24,8 @@ namespace FitNotionApi.Controllers
         [Route("Login")]
         public async Task<IActionResult> Login([FromBody] AuthorizationRequest authorization)
         {
-            Console.WriteLine("prueba 123: " + authorization.ToString());
             var authorization_result = await _authorizationService.DevolverToken(authorization);
 
-            Console.WriteLine("solicitando login");
             
             if (authorization_result == null)
             {
@@ -55,6 +53,25 @@ namespace FitNotionApi.Controllers
             }
 
             _context.Usuarios.Add(nuevoUsuario);
+            _context.SaveChanges();
+            if (nuevoUsuario.Tipo_Usuario == 2)
+            {
+                Nutricionistas nutricionista = new Nutricionistas
+                {
+                    Id_Nutricionista = Guid.NewGuid().ToString(),
+                    Id_Usuario = nuevoUsuario.Id_Usuario
+                };
+                _context.Nutricionistas.Add(nutricionista);
+            } else
+            {
+                Clientes cliente = new Clientes
+                {
+                    Id_Cliente = Guid.NewGuid().ToString(),
+                    Id_Usuario = nuevoUsuario.Id_Usuario,
+                };
+                _context.Clientes.Add(cliente);
+            }
+            
             _context.SaveChanges();
 
             AuthorizationRequest authorization = new AuthorizationRequest();

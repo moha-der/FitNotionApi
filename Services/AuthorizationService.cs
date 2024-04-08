@@ -18,14 +18,20 @@ namespace FitNotionApi.Services
             _configuration = configuration;
         }
 
-        private string GenerarToken(string idUser)
+        private string GenerarToken(string email, int permiso)
         {
             var key = _configuration.GetValue<string>("JwtSettings:Key");
             var keyBytes = Encoding.ASCII.GetBytes(key);
+            string rol = "Cliente";
+
+            if (permiso == 2)
+            {
+                rol = "Nutricionista";
+            }
 
             var claims = new ClaimsIdentity();
-            claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, idUser));
-            claims.AddClaim(new Claim(ClaimTypes.Role, "Moha"));
+            claims.AddClaim(new Claim(ClaimTypes.Email, email));
+            claims.AddClaim(new Claim(ClaimTypes.Role, rol));
 
             var credentialsToken = new SigningCredentials(
                 new SymmetricSecurityKey(keyBytes),
@@ -59,7 +65,7 @@ namespace FitNotionApi.Services
                 return await Task.FromResult<AuthorizationResponse>(null);
             }
 
-            string tokenCreated = GenerarToken(user_find.Id_Usuario.ToString());
+            string tokenCreated = GenerarToken(user_find.Email.ToString(),user_find.Tipo_Usuario);
 
             return new AuthorizationResponse() { Token = tokenCreated, Permiso = user_find.Tipo_Usuario, Msg = "OK", Result = true, email = user_find.Email };
         }
