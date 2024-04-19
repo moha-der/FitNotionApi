@@ -23,4 +23,10 @@ namespace FitNotionApi.Models
         public string EmailCliente { get; set; }
         public DateTime Fecha { get; set; }
     }
+
+    public class ClienteResponse
+    {
+        public string emailCliente { get; set; }
+        public string nombreCliente { get; set; }
+    }
 }

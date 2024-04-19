@@ -40,7 +40,7 @@ namespace FitNotionApi.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = claims,
-                Expires = DateTime.UtcNow.AddMinutes(60),
+                Expires = DateTime.UtcNow.AddMinutes(60*24*7),
                 SigningCredentials = credentialsToken
             };
 
