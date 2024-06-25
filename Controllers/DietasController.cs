@@ -1,4 +1,5 @@
-﻿using FitNotionApi.Context;
+﻿using Azure.Core;
+using FitNotionApi.Context;
 using FitNotionApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -36,7 +37,7 @@ namespace FitNotionApi.Controllers
                           join us in _context.Usuarios on nt.Id_Usuario equals us.Id_Usuario
                           join cl in _context.Clientes on dt.Id_Cliente equals cl.Id_Cliente
                           join us2 in _context.Usuarios on cl.Id_Usuario equals us2.Id_Usuario
-                          where us.Email == userEmailClaim
+                          where us.Email == userEmailClaim && dt.Activo == "S"
                           select new DietasResponse
                           {
                               Id_Dieta = dt.Id_Dieta,
@@ -153,6 +154,166 @@ namespace FitNotionApi.Controllers
             _context.SaveChanges();
 
             return Ok("OK | Cliente borrado");
+        }
+
+
+        [HttpGet]
+        [Route(("DetalleDieta/{idDieta}"))]
+        public async Task<ActionResult> detalleDietas(int idDieta)
+        {
+            var comidasDieta = await _context.ComidasDieta
+                                         .Where(cd => cd.id_dieta == idDieta)
+                                         .ToListAsync();
+
+            var data = new
+            {
+                desayuno = GetComidaOptions(comidasDieta, "Desayuno"),
+                almuerzo = GetComidaOptions(comidasDieta, "Almuerzo"),
+                comida = GetComidaOptions(comidasDieta, "Comida"),
+                merienda = GetComidaOptions(comidasDieta, "Merienda"),
+                cena = GetComidaOptions(comidasDieta, "Cena"),
+                notas = new
+                {
+                    nota = new
+                    {
+                        usuario = "moha",
+                        nota = "hola mundo"
+                    }
+                }
+            };
+
+            return Ok(data);
+
+        }
+
+        private object GetComidaOptions(IEnumerable<ComidasDieta> comidasDieta, string tipoComida)
+        {
+            var comidasFiltradas = comidasDieta.Where(cd => cd.tipo_comida == tipoComida).ToList();
+
+            if (comidasFiltradas.Any())
+            {
+                string horaComida = comidasFiltradas.First().hora_comida;
+
+                string opcionA = "";
+                string opcionB = "";
+                string opcionC = "";
+
+                foreach (var comida in comidasFiltradas)
+                {
+                    switch (comida.opcion)
+                    {
+                        case "A":
+                            opcionA = comida.comida;
+                            break;
+                        case "B":
+                            opcionB = comida.comida;
+                            break;
+                        case "C":
+                            opcionC = comida.comida;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                return new
+                {
+                    opciones = new
+                    {
+                        opcionA,
+                        opcionB,
+                        opcionC
+                    },
+                    hora = horaComida
+                };
+            }
+
+            return new
+            {
+                opciones = new
+                {
+                    opcionA = "",
+                    opcionB = "",
+                    opcionC = ""
+                },
+                hora = ""
+            };
+        }
+
+
+
+        private object GetComidasDetalle(ComidasDieta comidaDieta)
+        {
+            return new
+            {
+                opcionA = comidaDieta.opcion == "A" ? comidaDieta.comida : null,
+                opcionB = comidaDieta.opcion == "B" ? comidaDieta.comida : null,
+                opcionC = comidaDieta.opcion == "C" ? comidaDieta.comida : null
+            };
+        }
+
+
+        [HttpPost]
+        [Route(("AddDieta"))]
+        public async Task<IActionResult> AddDieta([FromBody] DietaRequest request)
+        {
+
+            var userEmailClaim = User.Claims.ToArray().FirstOrDefault().Value;
+
+            var nutricionista = (from us in _context.Usuarios
+                                 join nt in _context.Nutricionistas on us.Id_Usuario equals nt.Id_Usuario
+                                 where us.Email == userEmailClaim
+                                 select new Nutricionistas
+                                 {
+                                     Id_Usuario = us.Id_Usuario,
+                                     Id_Nutricionista = nt.Id_Nutricionista,
+                                 }).FirstOrDefault();
+
+            if (nutricionista == null)
+            {
+                return Ok("ERROR | Nutricionista no encontrado");
+            }
+
+            var cliente = (from us in _context.Usuarios
+                           join cl in _context.Clientes on us.Id_Usuario equals cl.Id_Usuario
+                           where us.Email == request.emailCliente
+                           select cl).FirstOrDefault();
+
+            if (cliente == null)
+            {
+                return Ok("ERROR | Cliente no encontrado");
+            }
+
+            var nuevaDieta = new Dietas
+            {
+                Id_Cliente = cliente.Id_Cliente,
+                Id_Nutricionista = nutricionista.Id_Nutricionista,
+                Fec_creacion = DateTime.Now,
+                Activo = "S"
+            };
+
+            _context.Dietas.Add(nuevaDieta);
+            await _context.SaveChangesAsync();
+
+            foreach(var comida in request.comidasDieta)
+            {
+                var nuevaComidaDieta = new ComidasDieta
+                {
+                    id_dieta = nuevaDieta.Id_Dieta,
+                    opcion = comida.opcion,
+                    tipo_comida = comida.comida,
+                    comida = comida.alimento,
+                    hora_comida = comida.hora
+                };
+
+                _context.ComidasDieta.Add(nuevaComidaDieta);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Dieta y comida guardados correctamente");
+            
+
         }
     }
 }

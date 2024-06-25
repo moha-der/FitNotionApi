@@ -24,4 +24,11 @@ namespace FitNotionApi.Models
             return BCrypt.Net.BCrypt.Verify(password,this.Password);
         }
     }
+
+    public class UpdateUserProfile
+    {
+        public string Nombre { get; set; }
+        public string Apellidos { get; set; }
+        public string FechaNac { get; set; }
+    }
 }

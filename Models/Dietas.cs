@@ -29,4 +29,5 @@ namespace FitNotionApi.Models
         public string emailCliente { get; set; }
         public string nombreCliente { get; set; }
     }
+
 }

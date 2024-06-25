@@ -3,6 +3,10 @@ using FitNotionApi.Models.Custom;
 using FitNotionApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace FitNotionApi.Controllers
 {
@@ -86,6 +90,63 @@ namespace FitNotionApi.Controllers
             }
 
             return Ok(authorization_result);
+        }
+
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var email = User.Claims.ToArray().FirstOrDefault().Value;
+
+            if (email == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _context.Usuarios
+            .Where(u => u.Email == email)
+            .Select(u => new
+            {
+                u.Nombre,
+                u.Apellidos,
+                u.Email,
+                FechaNac = u.Fecha_nac.ToString("yyyy-MM-dd")
+            })
+            .FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(user);
+        }
+
+        [Authorize]
+        [HttpPost("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserProfile userUpdateDto)
+        {
+            var email = User.Claims.ToArray().FirstOrDefault().Value;
+
+            if (email == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.Nombre = userUpdateDto.Nombre;
+            user.Apellidos = userUpdateDto.Apellidos;
+            user.Fecha_nac = DateTime.Parse(userUpdateDto.FechaNac);
+
+            _context.Usuarios.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
     }
 }
