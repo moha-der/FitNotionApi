@@ -26,5 +26,7 @@ namespace FitNotionApi.Context
 
         public DbSet<ComidasDieta> ComidasDieta { get; set; }
 
+        public DbSet<NotasDieta> NotasDieta { get; set;}
+
     }
 }

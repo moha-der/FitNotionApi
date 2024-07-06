@@ -88,7 +88,7 @@ namespace FitNotionApi.Controllers
 
             var resultado = new
             {
-                caloriasObjetivo = 1000,
+                caloriasObjetivo = 2000,
                 caloriasConsumidas = caloriasTotalConsumidas,
                 proteinasConsumidas = proteinasTotalConsumidas,
                 hidratosConsumidos = hidratosTotalConsumidos,

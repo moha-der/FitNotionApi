@@ -7,5 +7,6 @@
         public string Msg { get; set; }
         public int Permiso { get; set; }
         public string email { get; set; }
+        public string nombre { get; set; }
     }
 }

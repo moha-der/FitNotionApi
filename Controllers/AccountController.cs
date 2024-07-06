@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 
 namespace FitNotionApi.Controllers
@@ -17,11 +19,14 @@ namespace FitNotionApi.Controllers
         private readonly AppDbContext _context;
 
         private readonly Services.IAuthorizationService _authorizationService;
+        
+        private readonly IEmailService _emailService;
 
-        public AccountController(AppDbContext context, Services.IAuthorizationService authorizationService)
+        public AccountController(AppDbContext context, Services.IAuthorizationService authorizationService, IEmailService emailService)
         {
             _context = context;
             _authorizationService = authorizationService;
+            _emailService = emailService;
         }
 
         [HttpPost]
@@ -148,5 +153,83 @@ namespace FitNotionApi.Controllers
 
             return Ok();
         }
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
+        {
+            if (changePasswordDto.NewPassword != changePasswordDto.ConfirmNewPassword)
+            {
+                return BadRequest("Las contraseñas no coinciden");
+            }
+
+            var email = User.Claims.ToArray().FirstOrDefault().Value;
+
+            if (email == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
+
+            if(!user.verifyPassword(changePasswordDto.CurrentPassword))
+            {
+                return BadRequest("Las contraseñas no coinciden");
+            }
+
+            user.Password = changePasswordDto.NewPassword;
+            _context.Usuarios.Update(user);
+            await _context.SaveChangesAsync();
+            return Ok("Password changed successfully.");
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
+        {
+            var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == forgotPasswordDto.Email);
+            if (user == null)
+            {
+                return Ok(); 
+            }
+
+            var token = GenerateResetToken();
+            user.Recover_token = token;
+            _context.Usuarios.Update(user);
+            await _context.SaveChangesAsync();
+
+            var resetLink = $"https://fit-notion.vercel.app/resetPassword?token={token}";
+            var emailMessage = $"Para reestablecer tu contraseña click aquí: <a href='{resetLink}'>link</a>";
+
+            await _emailService.SendEmailAsync(user.Email, "Resetear Contraseña", emailMessage);
+
+            return Ok();
+        }
+
+        private string GenerateResetToken()
+        {
+            using (var rng = new RNGCryptoServiceProvider())
+            {
+                var bytes = new byte[32];
+                rng.GetBytes(bytes);
+                return Convert.ToBase64String(bytes);
+            }
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Recover_token == resetPasswordDto.Token);
+            if (user == null)
+            {
+                return BadRequest("Token Inválido.");
+            }
+
+            user.hashedPassword(resetPasswordDto.NewPassword);
+            user.Recover_token = "";
+            _context.Usuarios.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok("Contraseña cambiada correctamente");
+        }
+
     }
 }

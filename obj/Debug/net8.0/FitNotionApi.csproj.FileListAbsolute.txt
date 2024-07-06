@@ -256,3 +256,6 @@ C:\Users\micro\Desktop\Personal\TFG\FitNotionApi\bin\Debug\net8.0\runtimes\win\l
 C:\Users\micro\Desktop\Personal\TFG\FitNotionApi\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 C:\Users\micro\Desktop\Personal\TFG\FitNotionApi\obj\Debug\net8.0\FitNotionApi.sourcelink.json
 C:\Users\micro\Desktop\Personal\TFG\FitNotionApi\bin\Debug\net8.0\BCrypt.Net-Core.dll
+C:\Users\micro\Desktop\Personal\TFG\FitNotionApi\bin\Debug\net8.0\BouncyCastle.Cryptography.dll
+C:\Users\micro\Desktop\Personal\TFG\FitNotionApi\bin\Debug\net8.0\MailKit.dll
+C:\Users\micro\Desktop\Personal\TFG\FitNotionApi\bin\Debug\net8.0\MimeKit.dll

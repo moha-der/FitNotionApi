@@ -165,25 +165,47 @@ namespace FitNotionApi.Controllers
                                          .Where(cd => cd.id_dieta == idDieta)
                                          .ToListAsync();
 
+            var notasDieta = await _context.NotasDieta
+                                        .Where(nt => nt.id_dieta == idDieta)
+                                        .Select(nt => new
+                                        {
+                                            nt.id_nutricionista,
+                                            nt.id_cliente,
+                                            nt.fec_creacion,
+                                            nt.desc_nota,
+                                            Nutricionista = _context.Usuarios
+                                                                .Where(u => _context.Nutricionistas
+                                                                                    .Where(n => n.Id_Nutricionista == nt.id_nutricionista)
+                                                                                    .Select(n => n.Id_Usuario)
+                                                                                    .Contains(u.Id_Usuario))
+                                                                .Select(u => u.Nombre)
+                                                                .FirstOrDefault(),
+                                            Cliente = _context.Usuarios
+                                                                .Where(u => _context.Clientes
+                                                                                    .Where(c => c.Id_Cliente == nt.id_cliente)
+                                                                                    .Select(c => c.Id_Usuario)
+                                                                                    .Contains(u.Id_Usuario))
+                                                                .Select(u => u.Nombre)
+                                                                .FirstOrDefault()
+                                        })
+                                        .ToListAsync();
+
             var data = new
             {
-                desayuno = GetComidaOptions(comidasDieta, "Desayuno"),
-                almuerzo = GetComidaOptions(comidasDieta, "Almuerzo"),
-                comida = GetComidaOptions(comidasDieta, "Comida"),
-                merienda = GetComidaOptions(comidasDieta, "Merienda"),
-                cena = GetComidaOptions(comidasDieta, "Cena"),
-                notas = new
+                desayuno = GetComidaOptions(comidasDieta, "desayuno"),
+                almuerzo = GetComidaOptions(comidasDieta, "almuerzo"),
+                comida = GetComidaOptions(comidasDieta, "comida"),
+                merienda = GetComidaOptions(comidasDieta, "merienda"),
+                cena = GetComidaOptions(comidasDieta, "cena"),
+                notas = notasDieta.Select(nota => new
                 {
-                    nota = new
-                    {
-                        usuario = "moha",
-                        nota = "hola mundo"
-                    }
-                }
+                    usuario = (nota.Nutricionista == null) ? nota.Cliente : nota.Nutricionista, 
+                    nota = nota.desc_nota,
+                    fecha = nota.fec_creacion
+                }).ToList()
             };
 
             return Ok(data);
-
         }
 
         private object GetComidaOptions(IEnumerable<ComidasDieta> comidasDieta, string tipoComida)
@@ -240,17 +262,6 @@ namespace FitNotionApi.Controllers
             };
         }
 
-
-
-        private object GetComidasDetalle(ComidasDieta comidaDieta)
-        {
-            return new
-            {
-                opcionA = comidaDieta.opcion == "A" ? comidaDieta.comida : null,
-                opcionB = comidaDieta.opcion == "B" ? comidaDieta.comida : null,
-                opcionC = comidaDieta.opcion == "C" ? comidaDieta.comida : null
-            };
-        }
 
 
         [HttpPost]
@@ -315,5 +326,132 @@ namespace FitNotionApi.Controllers
             
 
         }
+
+        [HttpPost]
+        [Route("AddNota")]
+        public async Task<ActionResult> AddNota([FromBody] NotaRequest notaRequest)
+        {
+            var userEmailClaim = User.Claims.ToArray().FirstOrDefault().Value;
+
+            if (notaRequest.IsNutricionista == true)
+            {
+                var nutricionista = (from us in _context.Usuarios
+                                     join nt in _context.Nutricionistas on us.Id_Usuario equals nt.Id_Usuario
+                                     where us.Email == userEmailClaim
+                                     select new Nutricionistas
+                                     {
+                                         Id_Usuario = us.Id_Usuario,
+                                         Id_Nutricionista = nt.Id_Nutricionista,
+                                         Nombre = us.Nombre
+                                     }).FirstOrDefault();
+
+                if (nutricionista == null)
+                {
+                    return Ok("ERROR | Nutricionista no encontrado");
+                }
+
+                if (notaRequest == null || string.IsNullOrWhiteSpace(notaRequest.Nota))
+                {
+                    return BadRequest("Nota es requerida.");
+                }
+
+                var nuevaNota = new NotasDieta
+                {
+                    id_dieta = notaRequest.IdDieta,
+                    id_nutricionista = nutricionista.Id_Nutricionista,
+                    fec_creacion = DateTime.Now,
+                    desc_nota = notaRequest.Nota
+                };
+
+                _context.NotasDieta.Add(nuevaNota);
+                await _context.SaveChangesAsync();
+
+                var notaResponse = new
+                {
+                    usuario = nutricionista.Nombre,
+                    fecha = nuevaNota.fec_creacion,
+                    nota = nuevaNota.desc_nota
+                };
+
+                return Ok(notaResponse);
+            }
+            else
+            {
+                var cliente = (from us in _context.Usuarios
+                                     join nt in _context.Clientes on us.Id_Usuario equals nt.Id_Usuario
+                                     where us.Email == userEmailClaim
+                                     select new ClientesResponse
+                                     {
+                                         Id_Usuario = us.Id_Usuario,
+                                         Id_Cliente = nt.Id_Cliente,
+                                         Nombre = us.Nombre
+                                     }).FirstOrDefault();
+
+                if (cliente == null)
+                {
+                    return Ok("ERROR | Cliente no encontrado");
+                }
+
+                if (notaRequest == null || string.IsNullOrWhiteSpace(notaRequest.Nota))
+                {
+                    return BadRequest("Nota es requerida.");
+                }
+
+                var nuevaNota = new NotasDieta
+                {
+                    id_dieta = notaRequest.IdDieta,
+                    id_cliente = cliente.Id_Cliente,
+                    fec_creacion = DateTime.Now,
+                    desc_nota = notaRequest.Nota
+                };
+
+                _context.NotasDieta.Add(nuevaNota);
+                await _context.SaveChangesAsync();
+
+                var notaResponse = new
+                {
+                    usuario = cliente.Nombre,
+                    fecha = nuevaNota.fec_creacion,
+                    nota = nuevaNota.desc_nota
+                };
+
+                return Ok(notaResponse);
+            }
+            
+        }
+
+        [HttpGet]
+        [Route("HistorialDietas")]
+        public async Task<ActionResult> GetHistorialDietas([FromQuery] string email)
+        {
+            var historialDietas = await (
+                from dt in _context.Dietas
+                join cl in _context.Clientes on dt.Id_Cliente equals cl.Id_Cliente
+                join us in _context.Usuarios on cl.Id_Usuario equals us.Id_Usuario
+                where us.Email == email
+                select new
+                {
+                    FechaCreacion = dt.Fec_creacion,
+                    Activo = dt.Activo,
+                    idDieta = dt.Id_Dieta,
+                    Nutricionista = (from us2 in _context.Usuarios
+                                     join nt in _context.Nutricionistas on us2.Id_Usuario equals nt.Id_Usuario
+                                     where nt.Id_Nutricionista == dt.Id_Nutricionista
+                                     select us2.Nombre + " " + us2.Apellidos).FirstOrDefault()
+                }
+            ).ToListAsync();
+
+            if (historialDietas == null)
+            {
+                return NotFound("No se encontraron dietas para este cliente.");
+            }
+
+            return Ok(historialDietas);
+        }
+
+       
+
     }
+
+
 }

@@ -8,5 +8,7 @@ namespace FitNotionApi.Models
         public required string Id_Nutricionista { get; set; }
 
         public required string Id_Usuario { get; set; }
+        
+        public string? Nombre { get; set; }
     }
 }

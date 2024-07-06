@@ -13,6 +13,7 @@ namespace FitNotionApi.Models
         public int Edad { get; set; }
         public DateTime Fecha_nac {  get; set; }
         public int Tipo_Usuario { get; set; }
+        public string Recover_token { get; set; }
 
         public void hashedPassword(string password)
         {
@@ -30,5 +31,23 @@ namespace FitNotionApi.Models
         public string Nombre { get; set; }
         public string Apellidos { get; set; }
         public string FechaNac { get; set; }
+    }
+
+    public class ChangePasswordDto
+    {
+        public string CurrentPassword { get; set; }
+        public string NewPassword { get; set; }
+        public string ConfirmNewPassword { get; set; }
+    }
+
+    public class ForgotPasswordDto
+    {
+        public string Email { get; set; }
+    }
+
+    public class ResetPasswordDto
+    {
+        public string Token { get; set; }
+        public string NewPassword { get; set; }
     }
 }

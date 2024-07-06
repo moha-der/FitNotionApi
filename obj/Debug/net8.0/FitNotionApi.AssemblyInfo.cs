@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FitNotionApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e936b9089e688ff67bfcbb9911df0f6ef6363d38")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+240d83eded3b70d699b996b486180742b6472f31")]
 [assembly: System.Reflection.AssemblyProductAttribute("FitNotionApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FitNotionApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

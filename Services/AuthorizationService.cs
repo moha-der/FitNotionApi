@@ -67,7 +67,13 @@ namespace FitNotionApi.Services
 
             string tokenCreated = GenerarToken(user_find.Email.ToString(),user_find.Tipo_Usuario);
 
-            return new AuthorizationResponse() { Token = tokenCreated, Permiso = user_find.Tipo_Usuario, Msg = "OK", Result = true, email = user_find.Email };
+            return new AuthorizationResponse() { 
+                Token = tokenCreated, 
+                Permiso = user_find.Tipo_Usuario, 
+                Msg = "OK", Result = true, 
+                email = user_find.Email, 
+                nombre = user_find.Nombre 
+            };
         }
     }
 }
